@@ -34,6 +34,8 @@ class Database {
         })
     }
 
+    get filename() { return this.db.filename }
+
     close() {
         return new Promise((resolve, reject) => {
             this.db.close(err => {

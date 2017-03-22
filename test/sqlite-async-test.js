@@ -17,6 +17,7 @@ function expect(val, exp) {
 Database.open(FILENAME)
     .then(_db => {
         db = _db
+        expect(db.filename, `"${FILENAME}"`)
     })
     .then(_ => {
         return db.exec('CREATE TABLE test (id INT, name TEXT)')
