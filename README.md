@@ -18,7 +18,7 @@ Database.open('test.db')
     })
 ```
 
-The `test/sqlite-async-test.js` provides examples.
+The `test/sqlite-async-test.js` file provides examples.
 
 ## License
 
