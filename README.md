@@ -2,7 +2,7 @@
 
 ES6 Promise-based interface to the sqlite3 module.
 
-The `sqlite-async` module exports the `Database` class. Each method works the same as the original [`sqlite3 API`](https://github.com/mapbox/node-sqlite3/wiki/API). Instead of callbacks, each method returns a promise. The `prepare` method returns a `Statement` index that also wraps all of the original statement methods into methods that return a promise.
+The `sqlite-async` module exports the `Database` class. Each method works the same as the original [`sqlite3 API`](https://github.com/mapbox/node-sqlite3/wiki/API). Instead of callbacks, each method returns a promise. The `prepare` method returns a `Statement` instance that also wraps all of the original statement methods into methods that return a promise.
 
 ## Usage
 
