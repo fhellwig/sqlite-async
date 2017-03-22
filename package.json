@@ -1,0 +1,29 @@
+{
+  "name": "sqlite-async",
+  "version": "1.0.0",
+  "description": "ES6 Promise-based interface to the sqlite3 module.",
+  "main": "sqlite-async.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "test/sqlite-async-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fhellwig/sqlite-async.git"
+  },
+  "keywords": [
+    "SQLite",
+    "Async"
+  ],
+  "author": "Frank Hellwig",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fhellwig/sqlite-async/issues"
+  },
+  "homepage": "https://github.com/fhellwig/sqlite-async#readme",
+  "dependencies": {
+    "sqlite3": "^3.1.8"
+  }
+}
