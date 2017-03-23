@@ -10,39 +10,47 @@ const sqlite = require('sqlite3')
 
 class Database {
 
-    constructor(db) {
-        if (!(db instanceof sqlite.Database)) {
-            throw new TypeError(`Database: 'db' is not a database instance`)
-        }
-        this.db = db
-    }
-
     static get OPEN_READONLY() { return sqlite.OPEN_READONLY }
     static get OPEN_READWRITE() { return sqlite.OPEN_READWRITE }
     static get OPEN_CREATE() { return sqlite.OPEN_CREATE }
 
     static open(filename, mode) {
-        mode = mode || (Database.OPEN_READWRITE | Database.OPEN_CREATE)
+        let db = new Database()
+        return db.open(filename, mode)
+    }
+
+    open(filename, mode) {
+        if (typeof mode === 'undefined') {
+            mode = Database.OPEN_READWRITE | Database.OPEN_CREATE
+        } else if (typeof mode !== 'number') {
+            throw new TypeError('Database.open: mode is not a number')
+        }
         return new Promise((resolve, reject) => {
-            let db = new sqlite.Database(filename, mode, err => {
+            if (this.db) {
+                return reject(new Error('Database.open: database is already open'))
+            }
+            this.db = new sqlite.Database(filename, mode, err => {
                 if (err) {
                     reject(err)
                 } else {
-                    resolve(new Database(db))
+                    this.filename = filename
+                    resolve(this)
                 }
             })
         })
     }
 
-    get filename() { return this.db.filename }
-
     close() {
         return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return reject(new Error('Database.close: database is not open'))
+            }
             this.db.close(err => {
                 if (err) {
                     reject(err)
                 } else {
-                    resolve() // can't use it anymore
+                    this.db = null
+                    resolve(this)
                 }
             })
         })
@@ -50,6 +58,9 @@ class Database {
 
     run(...args) {
         return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return reject(new Error('Database.run: database is not open'))
+            }
             // Need a real function because 'this' is used.
             let callback = function (err) {
                 if (err) {
@@ -71,6 +82,9 @@ class Database {
 
     get(...args) {
         return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return reject(new Error('Database.get: database is not open'))
+            }
             let callback = (err, row) => {
                 if (err) {
                     reject(err)
@@ -85,6 +99,9 @@ class Database {
 
     all(...args) {
         return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return reject(new Error('Database.all: database is not open'))
+            }
             let callback = (err, rows) => {
                 if (err) {
                     reject(err)
@@ -102,6 +119,9 @@ class Database {
             throw TypeError('Database.each: last arg is not a function')
         }
         return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return reject(new Error('Database.each: database is not open'))
+            }
             let callback = (err, nrows) => {
                 if (err) {
                     reject(err)
@@ -116,6 +136,9 @@ class Database {
 
     exec(sql) {
         return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return reject(new Error('Database.exec: database is not open'))
+            }
             this.db.exec(sql, err => {
                 if (err) {
                     reject(err)
@@ -128,6 +151,9 @@ class Database {
 
     prepare(...args) {
         return new Promise((resolve, reject) => {
+            if (!this.db) {
+                return reject(new Error('Database.prepare: database is not open'))
+            }
             let statement
             let callback = err => {
                 if (err) {
@@ -171,12 +197,8 @@ class Statement {
 
     reset() {
         return new Promise((resolve, reject) => {
-            this.statement.reset(err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(this)
-                }
+            this.statement.reset(_ => {
+                resolve(this)
             })
         })
     }

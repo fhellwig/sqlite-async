@@ -80,6 +80,12 @@ Database.open(FILENAME)
         })
     })
     .then(_ => {
+        return db.run()
+    })
+    .catch(err => {
+        expect(err.message, `"Database.run: database is not open"`)
+    })
+    .then(_ => {
         console.log('All tests pass.')
     })
     .catch(err => {
