@@ -20,6 +20,19 @@ Database.open('test.db')
 
 The `test/sqlite-async-test.js` file provides examples.
 
+## Transactions
+
+The `transaction` method allows a function returning a promise to be wrapped in a transaction. The function is passed the `Database` instance as its parameter.
+
+```javascript
+db.transaction(db => {
+    return Promise.all([
+        db.run('INSERT INTO test VALUES (2, "two")'),
+        db.run('INSERT INTO test VALUES (2, "three")')
+    ])
+})
+```
+
 ## License
 
 MIT License

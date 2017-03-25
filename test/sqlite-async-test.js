@@ -20,7 +20,7 @@ Database.open(FILENAME)
         expect(db.filename, `"${FILENAME}"`)
     })
     .then(_ => {
-        return db.exec('CREATE TABLE test (id INT, name TEXT)')
+        return db.exec('CREATE TABLE test (id INT, name TEXT NOT NULL)')
     })
     .then(_ => {
         return db.run('INSERT INTO test VALUES (1, "test")')
@@ -64,6 +64,23 @@ Database.open(FILENAME)
     })
     .then(_ => {
         return statement.finalize()
+    })
+    .then(_ => {
+        return db.transaction(db => {
+            return Promise.all([
+                db.run('INSERT INTO test VALUES (2, "two")'),
+                db.run('INSERT INTO test VALUES (3, NULL)')
+            ])
+        })
+    })
+    .catch(err => {
+        expect(err.code, '"SQLITE_CONSTRAINT"')
+    })
+    .then(_ => {
+        return db.all('SELECT * FROM test')
+    })
+    .then(rows => {
+        expect(rows, '[{"id":1,"name":"test"}]')
     })
     .then(_ => {
         return db.close()
