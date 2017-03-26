@@ -1,6 +1,6 @@
 {
   "name": "sqlite-async",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "ES6 Promise-based interface to the sqlite3 module.",
   "main": "sqlite-async.js",
   "directories": {

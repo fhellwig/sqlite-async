@@ -56,7 +56,7 @@ Equivalent to the sqlite3 `Database#exec` method. Returns a promise that is reso
 
 ### Database#transaction(fn)
 
-The `transaction` method allows a function returning a promise to be wrapped in a transaction. The function is passed the `Database` instance as its parameter. Returns a promise that is resolved with the functions promise value.
+The `transaction` method allows a function returning a promise to be wrapped in a transaction. The function is passed the `Database` instance as its parameter. Returns a promise that is resolved with the function's promise value.
 
 ```javascript
 db.transaction(db => {
