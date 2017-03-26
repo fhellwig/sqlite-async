@@ -20,9 +20,43 @@ Database.open('test.db')
 
 The `test/sqlite-async-test.js` file provides examples.
 
-## Transactions
+## API
 
-The `transaction` method allows a function returning a promise to be wrapped in a transaction. The function is passed the `Database` instance as its parameter.
+### Database.open(filename, mode)
+
+Static method that instantiates a new `Database` object and calls `Database#open(filename, mode)`. Returns a promise that is resolved with the Database instance.
+
+### Database#open(filename, mode)
+
+Opens the database with the same arguments as the sqlite3 `Database` constructor. Returns a promise that is resolved with the Database instance.
+
+### Database#close()
+
+Closes the database and returns a promise.
+
+### Database#run(sql, [param, ...])
+
+Equivalent to the sqlite3 `Database#run` method. Returns a promise that is resolved with the `this` parameter from the sqlite3 callback function.
+
+### Database#get(sql, [param, ...])
+
+Equivalent to the sqlite3 `Database#get` method. Returns a promise that is resolved with the row.
+
+### Database#all(sql, [param, ...])
+
+Equivalent to the sqlite3 `Database#all` method. Returns a promise that is resolved with the rows.
+
+### Database#each(sql, [param, ...], callback)
+
+Equivalent to the sqlite3 `Database#each` method. The per-row callback function is requied. Returns a promise that is resolved with the Database instance.
+
+### Database#exec(sql)
+
+Equivalent to the sqlite3 `Database#exec` method. Returns a promise that is resolved with the Database instance.
+
+### Database#transaction(fn)
+
+The `transaction` method allows a function returning a promise to be wrapped in a transaction. The function is passed the `Database` instance as its parameter. Returns a promise that is resolved with the functions promise value.
 
 ```javascript
 db.transaction(db => {
@@ -32,6 +66,38 @@ db.transaction(db => {
     ])
 })
 ```
+
+### Database#prepare(sql, [param, ...])
+
+Equivalent to the sqlite3 `Database#prepare` method. Returns a promise that is resolved with the Statement instance.
+
+### Statement#bind(sql, [param, ...])
+
+Equivalent to the sqlite3 `Statement#bind` method. Returns a promise that is resolved with the Statement instance.
+
+### Statement#reset()
+
+Equivalent to the sqlite3 `Statement#reset` method. Returns a promise that is resolved with the Statement instance.
+
+### Statement#finalize()
+
+Equivalent to the sqlite3 `Statement#finalize` method. Returns a promise that is resolved with no value because the statement can no longer be used.
+
+### Statement#run([param, ...])
+
+Equivalent to the sqlite3 `Statement#run` method. Returns a promise that is resolved with the `this` parameter from the sqlite3 callback function.
+
+### Statement#get([param, ...])
+
+Equivalent to the sqlite3 `Statement#get` method. Returns a promise that is resolved with the row.
+
+### Statement#all([param, ...])
+
+Equivalent to the sqlite3 `Statement#all` method. Returns a promise that is resolved with the rows.
+
+### Statement#each([param, ...], callback)
+
+Equivalent to the sqlite3 `Statement#each` method. The per-row callback function is requied. Returns a promise that is resolved with the Statement instance.
 
 ## License
 

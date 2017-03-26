@@ -1,110 +1,189 @@
-const Database = require('../sqlite-async')
+const assert = require('assert')
 const fs = require('fs')
-
-const FILENAME = 'test.db'
+const Database = require('../sqlite-async')
 
 let db
 let statement
 
-function expect(val, exp) {
-    val = JSON.stringify(val)
-    if (val != exp) {
-        throw new Error(`Got ${val} instead of ${exp}.`)
-    }
-    console.log('Pass:', val)
-}
+describe('Module', function () {
+    describe('Database', function () {
+        describe('open', function () {
+            it('should open the database', function () {
+                return Database.open('test.db').then(_db => {
+                    db = _db
+                })
+            })
+        })
+        describe('exec', function () {
+            it('should create a table', function () {
+                return db.exec(
+                    `CREATE TABLE test (
+                         id INT PRIMARY KEY,
+                         name TEXT NOT NULL
+                     )`)
+            })
+        })
+        describe('run (insert)', function () {
+            it('should insert a row', function () {
+                return db.run('INSERT INTO test VALUES (1, "inserted")')
+            })
+        })
+        describe('run (update)', function () {
+            it('should update a value', function () {
+                return db.run('UPDATE test SET name = "test" WHERE id = 1').then(result => {
+                    assert.strictEqual(result.changes, 1, 'Expected one change in the database')
+                })
+            })
+        })
+        describe('run (delete)', function () {
+            it('should delete a row', function () {
+                return db.run('INSERT INTO test VALUES (2, "test")').then(_ => {
+                    return db.run('DELETE FROM test WHERE id = 2').then(result => {
+                        assert.strictEqual(result.changes, 1, 'Expected one change in the database')
+                    })
+                })
+            })
+        })
+        describe('get', function () {
+            it('should select one row', function () {
+                return db.get('SELECT * FROM test').then(row => {
+                    assert.deepStrictEqual(row, {
+                        id: 1,
+                        name: 'test'
+                    })
+                })
+            })
+        })
+        describe('all', function () {
+            it('should select all rows', function () {
+                return db.all('SELECT * FROM test').then(rows => {
+                    assert.deepStrictEqual(rows, [
+                        {
+                            id: 1,
+                            name: 'test'
+                        }
+                    ])
+                })
+            })
+        })
+        describe('each', function () {
+            it('should select rows and pass each to a callback', function () {
+                return db.each('SELECT * FROM  test WHERE id = 1', (err, row) => {
+                    assert.deepStrictEqual(row, {
+                        id: 1,
+                        name: 'test'
+                    })
+                })
+            })
+        })
 
-Database.open(FILENAME)
-    .then(_db => {
-        db = _db
-        expect(db.filename, `"${FILENAME}"`)
-    })
-    .then(_ => {
-        return db.exec('CREATE TABLE test (id INT, name TEXT NOT NULL)')
-    })
-    .then(_ => {
-        return db.run('INSERT INTO test VALUES (1, "test")')
-    })
-    .then(_ => {
-        return db.get('SELECT * FROM test')
-    })
-    .then(row => {
-        expect(row, '{"id":1,"name":"test"}')
-        return db.all('SELECT * FROM test')
-    })
-    .then(rows => {
-        expect(rows, '[{"id":1,"name":"test"}]')
-    })
-    .then(_ => {
-        return db.each('SELECT * FROM  test WHERE id = 1', (err, row) => {
-            expect(row, '{"id":1,"name":"test"}')
+        describe('transaction (success)', function () {
+            it('should execute and rollback a failed transaction', function () {
+                return db.transaction(db => {
+                    return Promise.all([
+                        db.run('INSERT INTO test VALUES (2, "two")'),
+                        db.run('INSERT INTO test VALUES (3, NULL)')
+                    ])
+                }).then(_ => {
+                    throw new Error('The transaction should not have succeeded.')
+                }, err => {
+                    assert.strictEqual(err.code, 'SQLITE_CONSTRAINT')
+                })
+            })
+            it('should leave the database unchanged', function () {
+                return db.all('SELECT * FROM test').then(rows => {
+                    assert.strictEqual(rows.length, 1, 'Expected only one row in the database.')
+                })
+            })
         })
-    })
-    .then(_ => {
-        return db.prepare('SELECT * FROM test WHERE id = ?')
-    })
-    .then(_statement => {
-        statement = _statement
-        return statement.bind(1)
-    })
-    .then(statement => {
-        return statement.get()
-    })
-    .then(row => {
-        expect(row, '{"id":1,"name":"test"}')
-        return statement.all()
-    })
-    .then(rows => {
-        expect(rows, '[{"id":1,"name":"test"}]')
-    })
-    .then(_ => {
-        return statement.each((err, row) => {
-            expect(row, '{"id":1,"name":"test"}')
+        describe('transaction (success)', function () {
+            it('should execute and commit a successful transaction', function () {
+                return db.transaction(db => {
+                    return Promise.all([
+                        db.run('INSERT INTO test VALUES (2, "two")'),
+                        db.run('INSERT INTO test VALUES (3, "three")')
+                    ])
+                })
+            })
+            it('should have added two rows to the database', function () {
+                return db.all('SELECT * FROM test').then(rows => {
+                    assert.strictEqual(rows.length, 3, 'Expected three rows in the database.')
+                })
+            })
         })
-    })
-    .then(_ => {
-        return statement.finalize()
-    })
-    .then(_ => {
-        return db.transaction(db => {
-            return Promise.all([
-                db.run('INSERT INTO test VALUES (2, "two")'),
-                db.run('INSERT INTO test VALUES (3, NULL)')
-            ])
-        })
-    })
-    .catch(err => {
-        expect(err.code, '"SQLITE_CONSTRAINT"')
-    })
-    .then(_ => {
-        return db.all('SELECT * FROM test')
-    })
-    .then(rows => {
-        expect(rows, '[{"id":1,"name":"test"}]')
-    })
-    .then(_ => {
-        return db.close()
-    })
-    .then(_ => {
-        return new Promise((resolve, reject) => {
-            fs.unlink(FILENAME, err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve()
-                }
+        describe('prepare', function () {
+            it('should prepare a statement', function () {
+                return db.prepare('SELECT * FROM test WHERE id = ?').then(_statement => {
+                    statement = _statement
+                })
             })
         })
     })
-    .then(_ => {
-        return db.run()
+
+    describe('Statement', function () {
+        describe('bind', function () {
+            it('should bind a value to the statement', function () {
+                return statement.bind(1)
+            })
+        })
+        describe('get', function () {
+            it('should select one row', function () {
+                return statement.get().then(row => {
+                    assert.deepStrictEqual(row, {
+                        id: 1,
+                        name: 'test'
+                    })
+                })
+            })
+        })
+        describe('all', function () {
+            it('should select all rows', function () {
+                return statement.all().then(rows => {
+                    assert.deepStrictEqual(rows, [
+                        {
+                            id: 1,
+                            name: 'test'
+                        }
+                    ])
+                })
+            })
+        })
+        describe('each', function () {
+            it('should select rows and pass each to a callback', function () {
+                return statement.each((err, row) => {
+                    assert.deepStrictEqual(row, {
+                        id: 1,
+                        name: 'test'
+                    })
+                })
+            })
+        })
+        describe('run', function () {
+            it('should delete all rows from the database', function () {
+                return db.prepare('DELETE FROM test').then(statement => {
+                    return statement.run().then(result => {
+                        assert.strictEqual(result.changes, 3, 'Expected three changes in the database')
+                        return statement.finalize()
+                    })
+                })
+            })
+        })
+        describe('finalize', function () {
+            it('should finalize the statement', function () {
+                return statement.finalize()
+            })
+        })
     })
-    .catch(err => {
-        expect(err.message, `"Database.run: database is not open"`)
+
+    describe('Database', function () {
+        describe('close', function () {
+            it('should close database', function () {
+                return db.close()
+            })
+        })
     })
-    .then(_ => {
-        console.log('All tests pass.')
+
+    after(function (done) {
+        fs.unlink('test.db', done)
     })
-    .catch(err => {
-        console.error('Error', err.message)
-    })
+})

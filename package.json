@@ -1,13 +1,13 @@
 {
   "name": "sqlite-async",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "ES6 Promise-based interface to the sqlite3 module.",
   "main": "sqlite-async.js",
   "directories": {
-    "test": "test"
+    "test": "mocha"
   },
   "scripts": {
-    "test": "test/sqlite-async-test.js"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -25,5 +25,8 @@
   "homepage": "https://github.com/fhellwig/sqlite-async#readme",
   "dependencies": {
     "sqlite3": "^3.1.8"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
   }
 }

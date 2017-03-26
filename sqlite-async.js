@@ -66,13 +66,10 @@ class Database {
                 if (err) {
                     reject(err)
                 } else {
-                    if (this.lastID) {
-                        resolve(this.lastID)
-                    } else if (this.changes) {
-                        resolve(this.changes)
-                    } else {
-                        resolve()
-                    }
+                    resolve({
+                        lastID: this.lastID,
+                        changes: this.changes
+                    })
                 }
             }
             args.push(callback)
@@ -149,6 +146,20 @@ class Database {
         })
     }
 
+    transaction(fn) {
+        return this.exec('BEGIN TRANSACTION').then(_ => {
+            return fn(this).then(result => {
+                return this.exec('END TRANSACTION').then(_ => {
+                    return result
+                })
+            }).catch(err => {
+                return this.exec('ROLLBACK TRANSACTION').then(_ => {
+                    return Promise.reject(err)
+                })
+            })
+        })
+    }
+
     prepare(...args) {
         return new Promise((resolve, reject) => {
             if (!this.db) {
@@ -164,20 +175,6 @@ class Database {
             }
             args.push(callback)
             statement = this.db.prepare.apply(this.db, args)
-        })
-    }
-
-    transaction(fn) {
-        return this.exec('BEGIN TRANSACTION').then(_ => {
-            return fn(this).then(result => {
-                return this.exec('END TRANSACTION').then(_ => {
-                    return result
-                })
-            }).catch(err => {
-                return this.exec('ROLLBACK TRANSACTION').then(_ => {
-                    return Promise.reject(err)
-                })
-            })
         })
     }
 }
@@ -236,13 +233,10 @@ class Statement {
                 if (err) {
                     reject(err)
                 } else {
-                    if (this.lastID) {
-                        resolve(this.lastID)
-                    } else if (this.changes) {
-                        resolve(this.changes)
-                    } else {
-                        resolve()
-                    }
+                    resolve({
+                        lastID: this.lastID,
+                        changes: this.changes
+                    })
                 }
             }
             args.push(callback)
