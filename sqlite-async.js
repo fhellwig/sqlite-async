@@ -29,10 +29,11 @@ class Database {
             if (this.db) {
                 return reject(new Error('Database.open: database is already open'))
             }
-            this.db = new sqlite.Database(filename, mode, err => {
+            let db = new sqlite.Database(filename, mode, err => {
                 if (err) {
                     reject(err)
                 } else {
+                    this.db = db
                     this.filename = filename
                     resolve(this)
                 }
