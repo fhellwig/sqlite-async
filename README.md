@@ -30,9 +30,9 @@ Static method that instantiates a new `Database` object and calls `Database#open
 
 Opens the database with the same arguments as the sqlite3 `Database` constructor. Returns a promise that is resolved with the Database instance.
 
-### Database#close([promise])
+### Database#close([fn])
 
-Closes the database and returns a promise. If the optional promise is specified, it is run before closing the database. The database is closed regardless whether the optional promise is resolved or rejected. If the optional promise is rejected, then the close method itself will return a rejected promise with the error from the optional promise.
+Closes the database and returns a promise. If the optional provider function (`fn`) is specified, it is called as `fn(db)` before the database is closed. **This function must return a promise.** The database is closed regardless of whether the promise returned by the optional provider function is resolved or rejected. If the returned promise is rejected, then the close method itself will return a rejected promise with the error from the promise returned by the provider function.
 
 ### Database#run(sql, [param, ...])
 

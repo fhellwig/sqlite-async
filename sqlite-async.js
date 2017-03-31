@@ -41,12 +41,12 @@ class Database {
         })
     }
 
-    close(promise) {
+    close(fn) {
         if (!this.db) {
             return Promise.reject(new Error('Database.close: database is not open'))
         }
-        if (promise) {
-            return promise(this).then(result => {
+        if (fn) {
+            return fn(this).then(result => {
                 return this.close().then(_ => {
                     return result
                 })

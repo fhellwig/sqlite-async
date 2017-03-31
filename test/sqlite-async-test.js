@@ -190,7 +190,8 @@ describe('Module', function () {
         })
         describe('close', function () {
             it('should close database after executing the promise', function () {
-                return db.close(db => {
+                return db.close(arg => {
+                    assert(arg === db)
                     return Promise.resolve('success')
                 }).then(result => {
                     assert.strictEqual(result, 'success')
