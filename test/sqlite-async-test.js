@@ -181,6 +181,25 @@ describe('Module', function () {
                 return db.close()
             })
         })
+        describe('open', function () {
+            it('should open the database again', function () {
+                return Database.open('test.db').then(_db => {
+                    db = _db
+                })
+            })
+        })
+        describe('close', function () {
+            it('should close database after executing the promise', function () {
+                return db.close(db => {
+                    return Promise.resolve('success')
+                }).then(result => {
+                    assert.strictEqual(result, 'success')
+                })
+            })
+            it('should no longer be able to use the database', function () {
+                assert(db.db === null)
+            })
+        })
     })
 
     after(function (done) {

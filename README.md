@@ -30,9 +30,9 @@ Static method that instantiates a new `Database` object and calls `Database#open
 
 Opens the database with the same arguments as the sqlite3 `Database` constructor. Returns a promise that is resolved with the Database instance.
 
-### Database#close()
+### Database#close([promise])
 
-Closes the database and returns a promise.
+Closes the database and returns a promise. If the optional promise is specified, it is run before closing the database. The database is closed regardless whether the optional promise is resolved or rejected. If the optional promise is rejected, then the close method itself will return a rejected promise with the error from the optional promise.
 
 ### Database#run(sql, [param, ...])
 
