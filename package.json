@@ -18,11 +18,14 @@
     "Async"
   ],
   "author": "Frank Hellwig",
+  "contributors": [
+    "Federico Paletta"
+  ]
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fhellwig/sqlite-async/issues"
+    "url": "https://github.com/fredev/sqlite-async/issues"
   },
-  "homepage": "https://github.com/fhellwig/sqlite-async#readme",
+  "homepage": "https://github.com/fredev/sqlite-async#readme",
   "dependencies": {
     "sqlite3": "^4.0.2"
   },
