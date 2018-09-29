@@ -20,7 +20,7 @@
   "author": "Frank Hellwig",
   "contributors": [
     "Federico Paletta"
-  ]
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fredev/sqlite-async/issues"
