@@ -71,7 +71,7 @@ db.transaction(db => {
 
 Equivalent to the sqlite3 `Database#prepare` method. Returns a promise that is resolved with the Statement instance.
 
-### Statement#bind(sql, [param, ...])
+### Statement#bind([param, ...])
 
 Equivalent to the sqlite3 `Statement#bind` method. Returns a promise that is resolved with the Statement instance.
 
@@ -103,7 +103,7 @@ Equivalent to the sqlite3 `Statement#each` method. The per-row callback function
 
 MIT License
 
-Copyright (c) 2017 Frank Hellwig
+Copyright (c) 2020 Frank Hellwig
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
