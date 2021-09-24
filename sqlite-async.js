@@ -2,193 +2,209 @@
  * This module provides a promise interface to the sqlite3 database module.
  */
 
-const sqlite = require('sqlite3')
+const sqlite = require('sqlite3');
+const pkg = require('./package.json'); // for sqlite3 version number
 
 //-----------------------------------------------------------------------------
 // The Database class
 //-----------------------------------------------------------------------------
 
 class Database {
+  static get OPEN_READONLY() {
+    return sqlite.OPEN_READONLY;
+  }
 
-    static get OPEN_READONLY() { return sqlite.OPEN_READONLY }
-    static get OPEN_READWRITE() { return sqlite.OPEN_READWRITE }
-    static get OPEN_CREATE() { return sqlite.OPEN_CREATE }
+  static get OPEN_READWRITE() {
+    return sqlite.OPEN_READWRITE;
+  }
 
-    static open(filename, mode) {
-        let db = new Database()
-        return db.open(filename, mode)
+  static get OPEN_CREATE() {
+    return sqlite.OPEN_CREATE;
+  }
+
+  static get SQLITE3_VERSION() {
+    return pkg.dependencies.sqlite3.substring(1);
+  }
+
+  static open(filename, mode) {
+    let db = new Database();
+    return db.open(filename, mode);
+  }
+
+  open(filename, mode) {
+    if (typeof mode === 'undefined') {
+      mode = Database.OPEN_READWRITE | Database.OPEN_CREATE;
+    } else if (typeof mode !== 'number') {
+      throw new TypeError('Database.open: mode is not a number');
     }
-
-    open(filename, mode) {
-        if (typeof mode === 'undefined') {
-            mode = Database.OPEN_READWRITE | Database.OPEN_CREATE
-        } else if (typeof mode !== 'number') {
-            throw new TypeError('Database.open: mode is not a number')
+    return new Promise((resolve, reject) => {
+      if (this.db) {
+        return reject(new Error('Database.open: database is already open'));
+      }
+      let db = new sqlite.Database(filename, mode, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          this.db = db;
+          this.filename = filename;
+          resolve(this);
         }
-        return new Promise((resolve, reject) => {
-            if (this.db) {
-                return reject(new Error('Database.open: database is already open'))
-            }
-            let db = new sqlite.Database(filename, mode, err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    this.db = db
-                    this.filename = filename
-                    resolve(this)
-                }
-            })
-        })
-    }
+      });
+    });
+  }
 
-    close(fn) {
-        if (!this.db) {
-            return Promise.reject(new Error('Database.close: database is not open'))
+  close(fn) {
+    if (!this.db) {
+      return Promise.reject(new Error('Database.close: database is not open'));
+    }
+    if (fn) {
+      return fn(this)
+        .then((result) => {
+          return this.close().then((_) => {
+            return result;
+          });
+        })
+        .catch((err) => {
+          return this.close().then((_) => {
+            return Promise.reject(err);
+          });
+        });
+    }
+    return new Promise((resolve, reject) => {
+      this.db.close((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          this.db = null;
+          resolve(this);
         }
-        if (fn) {
-            return fn(this).then(result => {
-                return this.close().then(_ => {
-                    return result
-                })
-            }).catch(err => {
-                return this.close().then(_ => {
-                    return Promise.reject(err)
-                })
-            })
+      });
+    });
+  }
+
+  run(...args) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        return reject(new Error('Database.run: database is not open'));
+      }
+      // Need a real function because 'this' is used.
+      let callback = function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            lastID: this.lastID,
+            changes: this.changes,
+          });
         }
-        return new Promise((resolve, reject) => {
-            this.db.close(err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    this.db = null
-                    resolve(this)
-                }
-            })
-        })
-    }
+      };
+      args.push(callback);
+      this.db.run.apply(this.db, args);
+    });
+  }
 
-    run(...args) {
-        return new Promise((resolve, reject) => {
-            if (!this.db) {
-                return reject(new Error('Database.run: database is not open'))
-            }
-            // Need a real function because 'this' is used.
-            let callback = function (err) {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve({
-                        lastID: this.lastID,
-                        changes: this.changes
-                    })
-                }
-            }
-            args.push(callback)
-            this.db.run.apply(this.db, args)
-        })
-    }
-
-    get(...args) {
-        return new Promise((resolve, reject) => {
-            if (!this.db) {
-                return reject(new Error('Database.get: database is not open'))
-            }
-            let callback = (err, row) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(row)
-                }
-            }
-            args.push(callback)
-            this.db.get.apply(this.db, args)
-        })
-    }
-
-    all(...args) {
-        return new Promise((resolve, reject) => {
-            if (!this.db) {
-                return reject(new Error('Database.all: database is not open'))
-            }
-            let callback = (err, rows) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(rows)
-                }
-            }
-            args.push(callback)
-            this.db.all.apply(this.db, args)
-        })
-    }
-
-    each(...args) {
-        if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
-            throw TypeError('Database.each: last arg is not a function')
+  get(...args) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        return reject(new Error('Database.get: database is not open'));
+      }
+      let callback = (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
         }
-        return new Promise((resolve, reject) => {
-            if (!this.db) {
-                return reject(new Error('Database.each: database is not open'))
-            }
-            let callback = (err, nrows) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(nrows)
-                }
-            }
-            args.push(callback)
-            this.db.each.apply(this.db, args)
-        })
-    }
+      };
+      args.push(callback);
+      this.db.get.apply(this.db, args);
+    });
+  }
 
-    exec(sql) {
-        return new Promise((resolve, reject) => {
-            if (!this.db) {
-                return reject(new Error('Database.exec: database is not open'))
-            }
-            this.db.exec(sql, err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(this)
-                }
-            })
-        })
-    }
+  all(...args) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        return reject(new Error('Database.all: database is not open'));
+      }
+      let callback = (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      };
+      args.push(callback);
+      this.db.all.apply(this.db, args);
+    });
+  }
 
-    transaction(fn) {
-        return this.exec('BEGIN TRANSACTION').then(_ => {
-            return fn(this).then(result => {
-                return this.exec('END TRANSACTION').then(_ => {
-                    return result
-                })
-            }).catch(err => {
-                return this.exec('ROLLBACK TRANSACTION').then(_ => {
-                    return Promise.reject(err)
-                })
-            })
-        })
+  each(...args) {
+    if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
+      throw TypeError('Database.each: last arg is not a function');
     }
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        return reject(new Error('Database.each: database is not open'));
+      }
+      let callback = (err, nrows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(nrows);
+        }
+      };
+      args.push(callback);
+      this.db.each.apply(this.db, args);
+    });
+  }
 
-    prepare(...args) {
-        return new Promise((resolve, reject) => {
-            if (!this.db) {
-                return reject(new Error('Database.prepare: database is not open'))
-            }
-            let statement
-            let callback = err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(new Statement(statement))
-                }
-            }
-            args.push(callback)
-            statement = this.db.prepare.apply(this.db, args)
+  exec(sql) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        return reject(new Error('Database.exec: database is not open'));
+      }
+      this.db.exec(sql, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this);
+        }
+      });
+    });
+  }
+
+  transaction(fn) {
+    return this.exec('BEGIN TRANSACTION').then((_) => {
+      return fn(this)
+        .then((result) => {
+          return this.exec('END TRANSACTION').then((_) => {
+            return result;
+          });
         })
-    }
+        .catch((err) => {
+          return this.exec('ROLLBACK TRANSACTION').then((_) => {
+            return Promise.reject(err);
+          });
+        });
+    });
+  }
+
+  prepare(...args) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        return reject(new Error('Database.prepare: database is not open'));
+      }
+      let statement;
+      let callback = (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(new Statement(statement));
+        }
+      };
+      args.push(callback);
+      statement = this.db.prepare.apply(this.db, args);
+    });
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -196,114 +212,113 @@ class Database {
 //-----------------------------------------------------------------------------
 
 class Statement {
+  constructor(statement) {
+    if (!(statement instanceof sqlite.Statement)) {
+      throw new TypeError(`Statement: 'statement' is not a statement instance`);
+    }
+    this.statement = statement;
+  }
 
-    constructor(statement) {
-        if (!(statement instanceof sqlite.Statement)) {
-            throw new TypeError(`Statement: 'statement' is not a statement instance`)
+  bind(...args) {
+    return new Promise((resolve, reject) => {
+      let callback = (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this);
         }
-        this.statement = statement
-    }
+      };
+      args.push(callback);
+      this.statement.bind.apply(this.statement, args);
+    });
+  }
 
-    bind(...args) {
-        return new Promise((resolve, reject) => {
-            let callback = err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(this)
-                }
-            }
-            args.push(callback)
-            this.statement.bind.apply(this.statement, args)
-        })
-    }
+  reset() {
+    return new Promise((resolve, reject) => {
+      this.statement.reset((_) => {
+        resolve(this);
+      });
+    });
+  }
 
-    reset() {
-        return new Promise((resolve, reject) => {
-            this.statement.reset(_ => {
-                resolve(this)
-            })
-        })
-    }
-
-    finalize() {
-        return new Promise((resolve, reject) => {
-            this.statement.finalize(err => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve() // can't use it anymore
-                }
-            })
-        })
-    }
-
-    run(...args) {
-        return new Promise((resolve, reject) => {
-            // Need a real function because 'this' is used.
-            let callback = function (err) {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve({
-                        lastID: this.lastID,
-                        changes: this.changes
-                    })
-                }
-            }
-            args.push(callback)
-            this.statement.run.apply(this.statement, args)
-        })
-    }
-
-    get(...args) {
-        return new Promise((resolve, reject) => {
-            let callback = (err, row) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(row)
-                }
-            }
-            args.push(callback)
-            this.statement.get.apply(this.statement, args)
-        })
-    }
-
-    all(...args) {
-        return new Promise((resolve, reject) => {
-            let callback = (err, rows) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(rows)
-                }
-            }
-            args.push(callback)
-            this.statement.all.apply(this.statement, args)
-        })
-    }
-
-    each(...args) {
-        if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
-            throw TypeError('Statement.each: last arg is not a function')
+  finalize() {
+    return new Promise((resolve, reject) => {
+      this.statement.finalize((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(); // can't use it anymore
         }
-        return new Promise((resolve, reject) => {
-            let callback = (err, nrows) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(nrows)
-                }
-            }
-            args.push(callback)
-            this.statement.each.apply(this.statement, args)
-        })
+      });
+    });
+  }
+
+  run(...args) {
+    return new Promise((resolve, reject) => {
+      // Need a real function because 'this' is used.
+      let callback = function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            lastID: this.lastID,
+            changes: this.changes,
+          });
+        }
+      };
+      args.push(callback);
+      this.statement.run.apply(this.statement, args);
+    });
+  }
+
+  get(...args) {
+    return new Promise((resolve, reject) => {
+      let callback = (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      };
+      args.push(callback);
+      this.statement.get.apply(this.statement, args);
+    });
+  }
+
+  all(...args) {
+    return new Promise((resolve, reject) => {
+      let callback = (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      };
+      args.push(callback);
+      this.statement.all.apply(this.statement, args);
+    });
+  }
+
+  each(...args) {
+    if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
+      throw TypeError('Statement.each: last arg is not a function');
     }
+    return new Promise((resolve, reject) => {
+      let callback = (err, nrows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(nrows);
+        }
+      };
+      args.push(callback);
+      this.statement.each.apply(this.statement, args);
+    });
+  }
 }
 
 //-----------------------------------------------------------------------------
 // Module Exports
 //-----------------------------------------------------------------------------
 
-module.exports = Database
+module.exports = Database;

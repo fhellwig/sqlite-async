@@ -22,6 +22,10 @@ The `test/sqlite-async-test.js` file provides examples.
 
 ## API
 
+### Database.SQLITE3_VERSION
+
+Static getter that returns the version number of the `node-sqlite3` package currently being used by this module.
+
 ### Database.open(filename, mode)
 
 Static method that instantiates a new `Database` object and calls `Database#open(filename, mode)`. Returns a promise that is resolved with the Database instance.
@@ -59,7 +63,7 @@ Equivalent to the sqlite3 `Database#exec` method. Returns a promise that is reso
 The `transaction` method allows a function returning a promise to be wrapped in a transaction. The function is passed the `Database` instance as its parameter. Returns a promise that is resolved with the function's promise value.
 
 ```javascript
-db.transaction(db => {
+db.transaction((db) => {
     return Promise.all([
         db.run('INSERT INTO test VALUES (2, "two")'),
         db.run('INSERT INTO test VALUES (2, "three")')
@@ -103,7 +107,7 @@ Equivalent to the sqlite3 `Statement#each` method. The per-row callback function
 
 MIT License
 
-Copyright (c) 2020 Frank Hellwig
+Copyright (c) 2021 Frank Hellwig
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
