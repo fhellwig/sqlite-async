@@ -53,6 +53,10 @@ class Database {
     });
   }
 
+  on(evt, cb) {
+    return this.db.on(evt, cb);
+  }
+  
   close(fn) {
     if (!this.db) {
       return Promise.reject(new Error('Database.close: database is not open'));
