@@ -2,14 +2,13 @@
  * This module provides a promise interface to the sqlite3 database module.
  */
 
-const sqlite = require('sqlite3');
-const pkg = require('./package.json'); // for sqlite3 version number
+import sqlite from 'sqlite3';
 
 //-----------------------------------------------------------------------------
 // The Database class
 //-----------------------------------------------------------------------------
 
-class Database {
+export class Database {
   static get OPEN_READONLY() {
     return sqlite.OPEN_READONLY;
   }
@@ -23,7 +22,7 @@ class Database {
   }
 
   static get SQLITE3_VERSION() {
-    return pkg.dependencies.sqlite3.substring(1);
+    return '5.0.11';
   }
 
   static open(filename, mode) {
@@ -56,7 +55,7 @@ class Database {
   on(evt, cb) {
     return this.db.on(evt, cb);
   }
-  
+
   close(fn) {
     if (!this.db) {
       return Promise.reject(new Error('Database.close: database is not open'));
@@ -98,7 +97,7 @@ class Database {
         } else {
           resolve({
             lastID: this.lastID,
-            changes: this.changes,
+            changes: this.changes
           });
         }
       };
@@ -266,7 +265,7 @@ class Statement {
         } else {
           resolve({
             lastID: this.lastID,
-            changes: this.changes,
+            changes: this.changes
           });
         }
       };
@@ -320,9 +319,3 @@ class Statement {
     });
   }
 }
-
-//-----------------------------------------------------------------------------
-// Module Exports
-//-----------------------------------------------------------------------------
-
-module.exports = Database;

@@ -7,7 +7,7 @@ The `sqlite-async` module exports the `Database` class. Each method works the sa
 ## Usage
 
 ```javascript
-const Database = require('sqlite-async')
+import { Database } from 'sqlite-async':
 
 Database.open('test.db')
     .then(db => {
@@ -15,7 +15,7 @@ Database.open('test.db')
     })
     .catch(err => {
         ...
-    })
+    }):
 ```
 
 The `test/sqlite-async-test.js` file provides examples.
@@ -64,11 +64,11 @@ The `transaction` method allows a function returning a promise to be wrapped in 
 
 ```javascript
 db.transaction((db) => {
-    return Promise.all([
-        db.run('INSERT INTO test VALUES (2, "two")'),
-        db.run('INSERT INTO test VALUES (2, "three")')
-    ])
-})
+  return Promise.all([
+    db.run('INSERT INTO test VALUES (2, "two")'),
+    db.run('INSERT INTO test VALUES (2, "three")')
+  ]);
+});
 ```
 
 ### Database#prepare(sql, [param, ...])
@@ -107,7 +107,7 @@ Equivalent to the sqlite3 `Statement#each` method. The per-row callback function
 
 MIT License
 
-Copyright (c) 2021 Frank Hellwig
+Copyright (c) 2022 Frank Hellwig
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

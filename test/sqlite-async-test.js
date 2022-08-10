@@ -1,6 +1,6 @@
-const assert = require('assert');
-const fs = require('fs');
-const Database = require('../sqlite-async');
+import assert from 'assert';
+import { unlink } from 'fs';
+import { Database } from '../sqlite-async.js';
 
 let db;
 let statement;
@@ -9,7 +9,9 @@ describe('Module', function () {
   describe('Database', function () {
     describe('SQLITE3_VERSION', function () {
       it('should log the version number', function () {
-        return console.log('        sqlite3 version: ' + Database.SQLITE3_VERSION);
+        return console.log(
+          '        sqlite3 version: ' + Database.SQLITE3_VERSION
+        );
       });
     });
     describe('open', function () {
@@ -36,16 +38,26 @@ describe('Module', function () {
     });
     describe('run (update)', function () {
       it('should update a value', function () {
-        return db.run('UPDATE test SET name = "test" WHERE id = 1').then((result) => {
-          assert.strictEqual(result.changes, 1, 'Expected one change in the database');
-        });
+        return db
+          .run('UPDATE test SET name = "test" WHERE id = 1')
+          .then((result) => {
+            assert.strictEqual(
+              result.changes,
+              1,
+              'Expected one change in the database'
+            );
+          });
       });
     });
     describe('run (delete)', function () {
       it('should delete a row', function () {
         return db.run('INSERT INTO test VALUES (2, "test")').then((_) => {
           return db.run('DELETE FROM test WHERE id = 2').then((result) => {
-            assert.strictEqual(result.changes, 1, 'Expected one change in the database');
+            assert.strictEqual(
+              result.changes,
+              1,
+              'Expected one change in the database'
+            );
           });
         });
       });
@@ -55,7 +67,7 @@ describe('Module', function () {
         return db.get('SELECT * FROM test').then((row) => {
           assert.deepStrictEqual(row, {
             id: 1,
-            name: 'test',
+            name: 'test'
           });
         });
       });
@@ -66,8 +78,8 @@ describe('Module', function () {
           assert.deepStrictEqual(rows, [
             {
               id: 1,
-              name: 'test',
-            },
+              name: 'test'
+            }
           ]);
         });
       });
@@ -77,7 +89,7 @@ describe('Module', function () {
         return db.each('SELECT * FROM  test WHERE id = 1', (err, row) => {
           assert.deepStrictEqual(row, {
             id: 1,
-            name: 'test',
+            name: 'test'
           });
         });
       });
@@ -89,7 +101,7 @@ describe('Module', function () {
           .transaction((db) => {
             return Promise.all([
               db.run('INSERT INTO test VALUES (2, "two")'),
-              db.run('INSERT INTO test VALUES (3, NULL)'),
+              db.run('INSERT INTO test VALUES (3, NULL)')
             ]);
           })
           .then(
@@ -103,7 +115,11 @@ describe('Module', function () {
       });
       it('should leave the database unchanged', function () {
         return db.all('SELECT * FROM test').then((rows) => {
-          assert.strictEqual(rows.length, 1, 'Expected only one row in the database.');
+          assert.strictEqual(
+            rows.length,
+            1,
+            'Expected only one row in the database.'
+          );
         });
       });
     });
@@ -112,21 +128,27 @@ describe('Module', function () {
         return db.transaction((db) => {
           return Promise.all([
             db.run('INSERT INTO test VALUES (2, "two")'),
-            db.run('INSERT INTO test VALUES (3, "three")'),
+            db.run('INSERT INTO test VALUES (3, "three")')
           ]);
         });
       });
       it('should have added two rows to the database', function () {
         return db.all('SELECT * FROM test').then((rows) => {
-          assert.strictEqual(rows.length, 3, 'Expected three rows in the database.');
+          assert.strictEqual(
+            rows.length,
+            3,
+            'Expected three rows in the database.'
+          );
         });
       });
     });
     describe('prepare', function () {
       it('should prepare a statement', function () {
-        return db.prepare('SELECT * FROM test WHERE id = ?').then((_statement) => {
-          statement = _statement;
-        });
+        return db
+          .prepare('SELECT * FROM test WHERE id = ?')
+          .then((_statement) => {
+            statement = _statement;
+          });
       });
     });
   });
@@ -142,7 +164,7 @@ describe('Module', function () {
         return statement.get().then((row) => {
           assert.deepStrictEqual(row, {
             id: 1,
-            name: 'test',
+            name: 'test'
           });
         });
       });
@@ -153,8 +175,8 @@ describe('Module', function () {
           assert.deepStrictEqual(rows, [
             {
               id: 1,
-              name: 'test',
-            },
+              name: 'test'
+            }
           ]);
         });
       });
@@ -164,7 +186,7 @@ describe('Module', function () {
         return statement.each((err, row) => {
           assert.deepStrictEqual(row, {
             id: 1,
-            name: 'test',
+            name: 'test'
           });
         });
       });
@@ -173,7 +195,11 @@ describe('Module', function () {
       it('should delete all rows from the database', function () {
         return db.prepare('DELETE FROM test').then((statement) => {
           return statement.run().then((result) => {
-            assert.strictEqual(result.changes, 3, 'Expected three changes in the database');
+            assert.strictEqual(
+              result.changes,
+              3,
+              'Expected three changes in the database'
+            );
             return statement.finalize();
           });
         });
@@ -217,6 +243,6 @@ describe('Module', function () {
   });
 
   after(function (done) {
-    fs.unlink('test.db', done);
+    unlink('test.db', done);
   });
 });
