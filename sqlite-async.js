@@ -175,20 +175,16 @@ export class Database {
     });
   }
 
-  transaction(fn) {
-    return this.exec('BEGIN TRANSACTION').then((_) => {
-      return fn(this)
-        .then((result) => {
-          return this.exec('END TRANSACTION').then((_) => {
-            return result;
-          });
-        })
-        .catch((err) => {
-          return this.exec('ROLLBACK TRANSACTION').then((_) => {
-            return Promise.reject(err);
-          });
-        });
-    });
+  async transaction(fn) {
+    await this.exec('BEGIN TRANSACTION');
+    try {
+      const result = await fn(this);
+      await this.exec('END TRANSACTION');
+      return result;
+    } catch (e) {
+      await this.exec('ROLLBACK TRANSACTION');
+      throw e;
+    }
   }
 
   prepare(...args) {
