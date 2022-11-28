@@ -4,11 +4,24 @@
 
 import sqlite from 'sqlite3';
 
+export type OpenMode = typeof sqlite.OPEN_READONLY
+  | typeof sqlite.OPEN_READWRITE
+| typeof sqlite.OPEN_CREATE;
+
+export interface RunResult {
+  lastID: number;
+  changes: number;
+}
+
 //-----------------------------------------------------------------------------
 // The Database class
 //-----------------------------------------------------------------------------
 
 export class Database {
+
+  db: sqlite.Database | null
+  filename: string
+
   static get OPEN_READONLY() {
     return sqlite.OPEN_READONLY;
   }
@@ -25,12 +38,12 @@ export class Database {
     return '5.0.11';
   }
 
-  static open(filename, mode) {
+  static open(filename: string, mode?: OpenMode): Promise<Database> {
     let db = new Database();
     return db.open(filename, mode);
   }
 
-  open(filename, mode) {
+  open(filename: string, mode?: OpenMode): Promise<Database> {
     if (typeof mode === 'undefined') {
       mode = Database.OPEN_READWRITE | Database.OPEN_CREATE;
     } else if (typeof mode !== 'number') {
@@ -52,11 +65,11 @@ export class Database {
     });
   }
 
-  on(evt, cb) {
-    return this.db.on(evt, cb);
+  on(evt: string, cb: (...args: any[]) => void) {
+    return this.db!.on(evt, cb);
   }
 
-  close(fn) {
+  close<Result>(fn?: (db: this) => Promise<Result>): Promise<Result|this> {
     if (!this.db) {
       return Promise.reject(new Error('Database.close: database is not open'));
     }
@@ -74,7 +87,7 @@ export class Database {
         });
     }
     return new Promise((resolve, reject) => {
-      this.db.close((err) => {
+      this.db!.close((err) => {
         if (err) {
           reject(err);
         } else {
@@ -85,13 +98,13 @@ export class Database {
     });
   }
 
-  run(...args) {
+  run(...args: any[]): Promise<RunResult> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.run: database is not open'));
       }
       // Need a real function because 'this' is used.
-      let callback = function (err) {
+      const callback = function (this: RunResult, err: Error | null) {
         if (err) {
           reject(err);
         } else {
@@ -106,12 +119,12 @@ export class Database {
     });
   }
 
-  get(...args) {
+  get(...args: any[]) {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.get: database is not open'));
       }
-      let callback = (err, row) => {
+      const callback = (err: Error | null, row: any) => {
         if (err) {
           reject(err);
         } else {
@@ -123,12 +136,12 @@ export class Database {
     });
   }
 
-  all(...args) {
+  all(...args: any[]): Promise<any[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.all: database is not open'));
       }
-      let callback = (err, rows) => {
+      const callback = (err: Error | null, rows: any[]) => {
         if (err) {
           reject(err);
         } else {
@@ -140,7 +153,7 @@ export class Database {
     });
   }
 
-  each(...args) {
+  each(...args: any[]): Promise<number> {
     if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
       throw TypeError('Database.each: last arg is not a function');
     }
@@ -148,19 +161,19 @@ export class Database {
       if (!this.db) {
         return reject(new Error('Database.each: database is not open'));
       }
-      let callback = (err, nrows) => {
+      const completeCallback = (err: Error | null, nrows: number) => {
         if (err) {
           reject(err);
         } else {
           resolve(nrows);
         }
       };
-      args.push(callback);
+      args.push(completeCallback);
       this.db.each.apply(this.db, args);
     });
   }
 
-  exec(sql) {
+  exec(sql: string): Promise<this> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.exec: database is not open'));
@@ -175,7 +188,7 @@ export class Database {
     });
   }
 
-  async transaction(fn) {
+  async transaction<T>(fn: (db: this) => T): Promise<T> {
     await this.exec('BEGIN TRANSACTION');
     try {
       const result = await fn(this);
@@ -187,13 +200,13 @@ export class Database {
     }
   }
 
-  prepare(...args) {
+  prepare(...args: any[]): Promise<Statement> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.prepare: database is not open'));
       }
-      let statement;
-      let callback = (err) => {
+      let statement: sqlite.Statement;
+      const callback = (err: Error | null) => {
         if (err) {
           reject(err);
         } else {
@@ -210,17 +223,20 @@ export class Database {
 // The Statement class
 //-----------------------------------------------------------------------------
 
-class Statement {
-  constructor(statement) {
+export class Statement {
+
+  statement: sqlite.Statement
+
+  constructor(statement: sqlite.Statement) {
     if (!(statement instanceof sqlite.Statement)) {
       throw new TypeError(`Statement: 'statement' is not a statement instance`);
     }
     this.statement = statement;
   }
 
-  bind(...args) {
+  bind(...args: any[]) {
     return new Promise((resolve, reject) => {
-      let callback = (err) => {
+      const callback = (err: Error|null) => {
         if (err) {
           reject(err);
         } else {
@@ -240,7 +256,7 @@ class Statement {
     });
   }
 
-  finalize() {
+  finalize(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.statement.finalize((err) => {
         if (err) {
@@ -252,10 +268,10 @@ class Statement {
     });
   }
 
-  run(...args) {
+  run(...args: any[]): Promise<RunResult> {
     return new Promise((resolve, reject) => {
       // Need a real function because 'this' is used.
-      let callback = function (err) {
+      const callback = function (this: RunResult, err: Error|null) {
         if (err) {
           reject(err);
         } else {
@@ -270,9 +286,9 @@ class Statement {
     });
   }
 
-  get(...args) {
+  get(...args: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
-      let callback = (err, row) => {
+      const callback = (err: Error|null, row: any) => {
         if (err) {
           reject(err);
         } else {
@@ -284,9 +300,9 @@ class Statement {
     });
   }
 
-  all(...args) {
+  all(...args: any[]): Promise<any[]> {
     return new Promise((resolve, reject) => {
-      let callback = (err, rows) => {
+      const callback = (err: Error|null, rows: any[]) => {
         if (err) {
           reject(err);
         } else {
@@ -298,12 +314,12 @@ class Statement {
     });
   }
 
-  each(...args) {
+  each(...args: any[]): Promise<number> {
     if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
       throw TypeError('Statement.each: last arg is not a function');
     }
     return new Promise((resolve, reject) => {
-      let callback = (err, nrows) => {
+      const callback = (err: Error|null, nrows: number) => {
         if (err) {
           reject(err);
         } else {

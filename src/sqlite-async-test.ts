@@ -1,9 +1,9 @@
 import assert from 'assert';
 import { unlink } from 'fs';
-import { Database } from '../sqlite-async.js';
+import { Database, Statement } from './sqlite-async'
 
-let db;
-let statement;
+let db: Database;
+let statement: Statement;
 
 describe('Module', function () {
   describe('Database', function () {
@@ -86,7 +86,7 @@ describe('Module', function () {
     });
     describe('each', function () {
       it('should select rows and pass each to a callback', function () {
-        return db.each('SELECT * FROM  test WHERE id = 1', (err, row) => {
+        return db.each('SELECT * FROM  test WHERE id = 1', (_err: Error, row: any) => {
           assert.deepStrictEqual(row, {
             id: 1,
             name: 'test'
@@ -114,7 +114,7 @@ describe('Module', function () {
           );
       });
       it('should leave the database unchanged', function () {
-        return db.all('SELECT * FROM test').then((rows) => {
+        return db.all('SELECT * FROM test').then((rows: any[]) => {
           assert.strictEqual(
             rows.length,
             1,
@@ -183,7 +183,7 @@ describe('Module', function () {
     });
     describe('each', function () {
       it('should select rows and pass each to a callback', function () {
-        return statement.each((err, row) => {
+        return statement.each((err: Error, row: any) => {
           assert.deepStrictEqual(row, {
             id: 1,
             name: 'test'

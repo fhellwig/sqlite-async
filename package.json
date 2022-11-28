@@ -1,13 +1,13 @@
 {
   "name": "sqlite-async",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "ES6 Promise-based interface to the sqlite3 module.",
-  "main": "sqlite-async.js",
-  "type": "module",
-  "directories": {
-    "test": "mocha"
-  },
+  "main": "./dist/sqlite-async.js",
+  "types": "./dist/sqlite-async.d.ts",
+  "type": "commonjs",
   "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm dist/*",
     "test": "mocha"
   },
   "repository": {
@@ -28,6 +28,12 @@
     "sqlite3": "^5.0.11"
   },
   "devDependencies": {
-    "mocha": "^10.0.0"
+    "@types/expect": "^24.3.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "*",
+    "@types/sqlite3": "*",
+    "mocha": "^10.0.0",
+    "ts-node": "*",
+    "typescript": "*"
   }
 }

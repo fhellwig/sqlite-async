@@ -103,6 +103,11 @@ Equivalent to the sqlite3 `Statement#all` method. Returns a promise that is reso
 
 Equivalent to the sqlite3 `Statement#each` method. The per-row callback function is requied. Returns a promise that is resolved with the Statement instance.
 
+## Contributors
+
+- [Frank Hellwig](https://github.com/fhellwig) -- Author
+- [Andy Peterson](https://github.com/ndp) -- Typescript
+
 ## License
 
 MIT License
