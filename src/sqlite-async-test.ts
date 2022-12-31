@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { unlink } from 'fs';
 import { Database, Statement } from './sqlite-async'
+import 'mocha';
 
 let db: Database;
 let statement: Statement;

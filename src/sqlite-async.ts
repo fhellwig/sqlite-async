@@ -2,7 +2,7 @@
  * This module provides a promise interface to the sqlite3 database module.
  */
 
-import sqlite from 'sqlite3';
+import * as sqlite from 'sqlite3';
 
 export type OpenMode = typeof sqlite.OPEN_READONLY
   | typeof sqlite.OPEN_READWRITE
@@ -19,8 +19,8 @@ export interface RunResult {
 
 export class Database {
 
-  db: sqlite.Database | null
-  filename: string
+  db?: sqlite.Database | null
+  filename?: string
 
   static get OPEN_READONLY() {
     return sqlite.OPEN_READONLY;
@@ -115,11 +115,11 @@ export class Database {
         }
       };
       args.push(callback);
-      this.db.run.apply(this.db, args);
+      this.db.run.apply(this.db, args as [sql: string, ... params: any[]]);
     });
   }
 
-  get(...args: any[]) {
+  get<T = void>(...args: any[]): Promise<T> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.get: database is not open'));
@@ -132,16 +132,16 @@ export class Database {
         }
       };
       args.push(callback);
-      this.db.get.apply(this.db, args);
+      this.db.get.apply(this.db, args as [sql: string, ...params: any[]]);
     });
   }
 
-  all(...args: any[]): Promise<any[]> {
+  all<T = void>(...args: any[]): Promise<T[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.all: database is not open'));
       }
-      const callback = (err: Error | null, rows: any[]) => {
+      const callback = (err: Error | null, rows: T[]) => {
         if (err) {
           reject(err);
         } else {
@@ -149,7 +149,7 @@ export class Database {
         }
       };
       args.push(callback);
-      this.db.all.apply(this.db, args);
+      this.db.all.apply(this.db, args as [sql: string, ...params: any[]]);
     });
   }
 
@@ -169,7 +169,7 @@ export class Database {
         }
       };
       args.push(completeCallback);
-      this.db.each.apply(this.db, args);
+      this.db.each.apply(this.db, args as [sql: string, ...params: any[]]);
     });
   }
 
@@ -214,7 +214,7 @@ export class Database {
         }
       };
       args.push(callback);
-      statement = this.db.prepare.apply(this.db, args);
+      statement = this.db.prepare.apply(this.db, args as [sql: string, ...params: any[]]);
     });
   }
 }

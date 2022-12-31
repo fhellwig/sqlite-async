@@ -2,12 +2,27 @@
   "name": "sqlite-async",
   "version": "1.2.0",
   "description": "ES6 Promise-based interface to the sqlite3 module.",
-  "main": "./dist/sqlite-async.js",
-  "types": "./dist/sqlite-async.d.ts",
+  "files": "dist/**",
   "type": "commonjs",
+  "main": "./dist/cjs/sqlite-async.js",
+  "types": "./dist/cjs/sqlite-async.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/types/sqlite-async.d.ts",
+        "default": "./dist/esm/sqlite-async.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/types/sqlite-async.d.ts",
+        "default": "./dist/cjs/sqlite-async.js"
+      }
+    }
+  },
   "scripts": {
-    "build": "npm run clean && tsc",
-    "clean": "rm dist/*",
+    "clean": "rm dist/* || echo 'already clean'",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p ./configs/tsconfig.esm.json && mv dist/esm/sqlite-async.js dist/esm/sqlite-async.mjs",
+    "build:cjs": "tsc -p ./configs/tsconfig.cjs.json",
     "test": "mocha"
   },
   "repository": {
@@ -28,11 +43,11 @@
     "sqlite3": "^5.0.11"
   },
   "devDependencies": {
-    "@types/expect": "^24.3.0",
-    "@types/mocha": "^10.0.0",
+    "@types/expect": "*",
+    "@types/mocha": "*",
     "@types/node": "*",
     "@types/sqlite3": "*",
-    "mocha": "^10.0.0",
+    "mocha": "*",
     "ts-node": "*",
     "typescript": "*"
   }
