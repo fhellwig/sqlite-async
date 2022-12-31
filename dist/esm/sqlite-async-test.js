@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { unlink } from 'fs';
 import { Database } from './sqlite-async';
+import 'mocha';
 let db;
 let statement;
 describe('Module', function () {

@@ -1,7 +1,7 @@
 /**
  * This module provides a promise interface to the sqlite3 database module.
  */
-import sqlite from 'sqlite3';
+import * as sqlite from 'sqlite3';
 //-----------------------------------------------------------------------------
 // The Database class
 //-----------------------------------------------------------------------------

@@ -1,15 +1,15 @@
 /**
  * This module provides a promise interface to the sqlite3 database module.
  */
-import sqlite from 'sqlite3';
+import * as sqlite from 'sqlite3';
 export type OpenMode = typeof sqlite.OPEN_READONLY | typeof sqlite.OPEN_READWRITE | typeof sqlite.OPEN_CREATE;
 export interface RunResult {
     lastID: number;
     changes: number;
 }
 export declare class Database {
-    db: sqlite.Database | null;
-    filename: string;
+    db?: sqlite.Database | null;
+    filename?: string;
     static get OPEN_READONLY(): number;
     static get OPEN_READWRITE(): number;
     static get OPEN_CREATE(): number;

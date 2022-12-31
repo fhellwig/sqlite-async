@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const assert_1 = __importDefault(require("assert"));
 const fs_1 = require("fs");
 const sqlite_async_1 = require("./sqlite-async");
+require("mocha");
 let db;
 let statement;
 describe('Module', function () {
