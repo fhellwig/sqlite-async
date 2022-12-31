@@ -40,7 +40,7 @@
   },
   "homepage": "https://github.com/fhellwig/sqlite-async#readme",
   "dependencies": {
-    "sqlite3": "^5.0.11"
+    "sqlite3": "^5.1.2"
   },
   "devDependencies": {
     "@types/expect": "*",
