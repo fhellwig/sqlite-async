@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "moduleResolution": "node",
-    "target": "es2022",
-    "module": "commonjs",
-    "lib": [
-      "es6"
-    ],
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "allowSyntheticDefaultImports": true,
     "types": [
       "mocha",
       "node"
@@ -15,9 +14,6 @@
     "noImplicitThis": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "../dist",
-    "declaration": true
   },
   "include": [
     "../src/**/*.ts"

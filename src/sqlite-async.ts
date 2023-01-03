@@ -65,7 +65,7 @@ export class Database {
     });
   }
 
-  on(evt: string, cb: (...args: any[]) => void) {
+  on(evt: string, cb: (...args: unknown[]) => void) {
     return this.db!.on(evt, cb);
   }
 
@@ -98,7 +98,7 @@ export class Database {
     });
   }
 
-  run(...args: any[]): Promise<RunResult> {
+  run(...args: unknown[]): Promise<RunResult> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.run: database is not open'));
@@ -115,28 +115,28 @@ export class Database {
         }
       };
       args.push(callback);
-      this.db.run.apply(this.db, args as [sql: string, ... params: any[]]);
+      this.db.run.apply(this.db, args as [sql: string, ... params: unknown[]]);
     });
   }
 
-  get<T = void>(...args: any[]): Promise<T> {
+  get<T = void>(...args: unknown[]): Promise<T> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.get: database is not open'));
       }
-      const callback = (err: Error | null, row: any) => {
+      const callback = (err: Error | null, row: unknown) => {
         if (err) {
           reject(err);
         } else {
-          resolve(row);
+          resolve(row as T);
         }
       };
       args.push(callback);
-      this.db.get.apply(this.db, args as [sql: string, ...params: any[]]);
+      this.db.get.apply(this.db, args as [sql: string, ...params: unknown[]]);
     });
   }
 
-  all<T = void>(...args: any[]): Promise<T[]> {
+  all<T = void>(...args: unknown[]): Promise<T[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.all: database is not open'));
@@ -149,11 +149,11 @@ export class Database {
         }
       };
       args.push(callback);
-      this.db.all.apply(this.db, args as [sql: string, ...params: any[]]);
+      this.db.all.apply(this.db, args as [sql: string, ...params: unknown[]]);
     });
   }
 
-  each(...args: any[]): Promise<number> {
+  each(...args: unknown[]): Promise<number> {
     if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
       throw TypeError('Database.each: last arg is not a function');
     }
@@ -169,7 +169,7 @@ export class Database {
         }
       };
       args.push(completeCallback);
-      this.db.each.apply(this.db, args as [sql: string, ...params: any[]]);
+      this.db.each.apply(this.db, args as [sql: string, ...params: unknown[]]);
     });
   }
 
@@ -200,7 +200,7 @@ export class Database {
     }
   }
 
-  prepare(...args: any[]): Promise<Statement> {
+  prepare(...args: unknown[]): Promise<Statement> {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         return reject(new Error('Database.prepare: database is not open'));
@@ -214,7 +214,7 @@ export class Database {
         }
       };
       args.push(callback);
-      statement = this.db.prepare.apply(this.db, args as [sql: string, ...params: any[]]);
+      statement = this.db.prepare.apply(this.db, args as [sql: string, ...params: unknown[]]);
     });
   }
 }
@@ -234,7 +234,7 @@ export class Statement {
     this.statement = statement;
   }
 
-  bind(...args: any[]) {
+  bind(...args: unknown[]) {
     return new Promise((resolve, reject) => {
       const callback = (err: Error|null) => {
         if (err) {
@@ -268,7 +268,7 @@ export class Statement {
     });
   }
 
-  run(...args: any[]): Promise<RunResult> {
+  run(...args: unknown[]): Promise<RunResult> {
     return new Promise((resolve, reject) => {
       // Need a real function because 'this' is used.
       const callback = function (this: RunResult, err: Error|null) {
@@ -286,9 +286,9 @@ export class Statement {
     });
   }
 
-  get(...args: any[]): Promise<any> {
+  get(...args: unknown[]): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      const callback = (err: Error|null, row: any) => {
+      const callback = (err: Error|null, row: unknown) => {
         if (err) {
           reject(err);
         } else {
@@ -300,9 +300,9 @@ export class Statement {
     });
   }
 
-  all(...args: any[]): Promise<any[]> {
+  all(...args: unknown[]): Promise<unknown[]> {
     return new Promise((resolve, reject) => {
-      const callback = (err: Error|null, rows: any[]) => {
+      const callback = (err: Error|null, rows: unknown[]) => {
         if (err) {
           reject(err);
         } else {
@@ -314,7 +314,7 @@ export class Statement {
     });
   }
 
-  each(...args: any[]): Promise<number> {
+  each(...args: unknown[]): Promise<number> {
     if (args.length === 0 || typeof args[args.length - 1] !== 'function') {
       throw TypeError('Statement.each: last arg is not a function');
     }

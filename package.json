@@ -2,10 +2,6 @@
   "name": "sqlite-async",
   "version": "1.2.0",
   "description": "ES6 Promise-based interface to the sqlite3 module.",
-  "files": "dist/**",
-  "type": "commonjs",
-  "main": "./dist/cjs/sqlite-async.js",
-  "types": "./dist/cjs/sqlite-async.d.ts",
   "exports": {
     ".": {
       "import": {
@@ -18,8 +14,13 @@
       }
     }
   },
+  "types": "./dist/cjs/types/sqlite-async.d.ts",
+  "main": "./dist/cjs/sqlite-async.js",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
-    "clean": "rm dist/* || echo 'already clean'",
+    "clean": "rm -fr dist/*",
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p ./configs/tsconfig.esm.json && mv dist/esm/sqlite-async.js dist/esm/sqlite-async.mjs",
     "build:cjs": "tsc -p ./configs/tsconfig.cjs.json",

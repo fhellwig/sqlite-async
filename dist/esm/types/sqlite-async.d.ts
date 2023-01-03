@@ -16,24 +16,25 @@ export declare class Database {
     static get SQLITE3_VERSION(): string;
     static open(filename: string, mode?: OpenMode): Promise<Database>;
     open(filename: string, mode?: OpenMode): Promise<Database>;
-    on(evt: string, cb: (...args: any[]) => void): sqlite.Database;
+    on(evt: string, cb: (...args: unknown[]) => void): sqlite.Database;
     close<Result>(fn?: (db: this) => Promise<Result>): Promise<Result | this>;
-    run(...args: any[]): Promise<RunResult>;
-    get<T = void>(...args: any[]): Promise<T>;
-    all<T = void>(...args: any[]): Promise<T[]>;
-    each(...args: any[]): Promise<number>;
+    run(...args: unknown[]): Promise<RunResult>;
+    get<T = void>(...args: unknown[]): Promise<T>;
+    all<T = void>(...args: unknown[]): Promise<T[]>;
+    each(...args: unknown[]): Promise<number>;
     exec(sql: string): Promise<this>;
     transaction<T>(fn: (db: this) => T): Promise<T>;
-    prepare(...args: any[]): Promise<Statement>;
+    prepare(...args: unknown[]): Promise<Statement>;
 }
 export declare class Statement {
     statement: sqlite.Statement;
     constructor(statement: sqlite.Statement);
-    bind(...args: any[]): Promise<unknown>;
+    bind(...args: unknown[]): Promise<unknown>;
     reset(): Promise<unknown>;
     finalize(): Promise<void>;
-    run(...args: any[]): Promise<RunResult>;
-    get(...args: any[]): Promise<any>;
-    all(...args: any[]): Promise<any[]>;
-    each(...args: any[]): Promise<number>;
+    run(...args: unknown[]): Promise<RunResult>;
+    get(...args: unknown[]): Promise<unknown>;
+    all(...args: unknown[]): Promise<unknown[]>;
+    each(...args: unknown[]): Promise<number>;
 }
+//# sourceMappingURL=sqlite-async.d.ts.map
