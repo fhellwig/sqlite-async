@@ -22,7 +22,7 @@ export class Database {
   }
 
   static get SQLITE3_VERSION() {
-    return '5.0.11';
+    return '5.1.7';
   }
 
   static open(filename, mode) {

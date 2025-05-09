@@ -25,9 +25,9 @@
   },
   "homepage": "https://github.com/fhellwig/sqlite-async#readme",
   "dependencies": {
-    "sqlite3": "^5.1.2"
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "mocha": "^10.1.0"
+    "mocha": "^11.2.2"
   }
 }
